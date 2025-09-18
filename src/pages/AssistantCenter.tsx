@@ -36,6 +36,8 @@ const AssistantCenter = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [quotaBlockedUntil, setQuotaBlockedUntil] = useState<number | null>(null);
   const [quotaCountdown, setQuotaCountdown] = useState<number>(0);
+  const [modelUnavailableUntil, setModelUnavailableUntil] = useState<number | null>(null);
+  const [modelUnavailableCountdown, setModelUnavailableCountdown] = useState<number>(0);
   const [isListeningState, setIsListeningState] = useState(false);
   const [roboState, setRoboState] = useState<"idle" | "listening" | "thinking" | "speaking">("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -79,6 +81,36 @@ const AssistantCenter = () => {
     }, 500);
     return () => clearInterval(interval);
   }, [quotaBlockedUntil]);
+
+  // Countdown timer for model unavailable (503)
+  useEffect(() => {
+    if (!modelUnavailableUntil) return;
+    const interval = setInterval(() => {
+      const remaining = modelUnavailableUntil - Date.now();
+      if (remaining <= 0) {
+        setModelUnavailableUntil(null);
+        setModelUnavailableCountdown(0);
+        clearInterval(interval);
+      } else {
+        setModelUnavailableCountdown(Math.ceil(remaining / 1000));
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [modelUnavailableUntil]);
+
+  // Lightweight local fallback generator for simple knowledge or code queries when model is down
+  const localFallbackAnswer = (raw: string): string | null => {
+    const lower = raw.toLowerCase();
+    // Simple code snippet heuristic
+    const codeReq = /(example|snippet|code|write|show) (a |an )?(function|loop|class|api|component)/.test(lower) || /\bjavascript\b/.test(lower);
+    if (codeReq) {
+      return `Model temporarily unavailable, providing a local example:\n\n// Debounced search input (JS)\nfunction debounce(fn, delay = 300) {\n  let t;\n  return (...args) => {\n    clearTimeout(t);\n    t = setTimeout(() => fn(...args), delay);\n  };\n}\n\nconst input = document.querySelector('#q');\nconst fetchResults = debounce(async (q) => {\n  if(!q) return;\n  const res = await fetch('/search?q=' + encodeURIComponent(q));\n  const data = await res.json();\n  console.log(data);\n}, 400);\n\ninput.addEventListener('input', e => fetchResults(e.target.value));\n\nExplanation: A debounce utility prevents firing the expensive search call until the user pauses typing.`;
+    }
+    if (isKnowledgeQuestion(raw)) {
+      return `The model is overloaded right now. Quick overview (local heuristic):\nTopic: ${extractTopic(raw) || 'Subject'}\nKey Points:\n- I can't fetch live model details now.\n- Try again shortly for a richer answer.\n- You can refine your question for more specifics.\n(Waiting ~${modelUnavailableCountdown || 5}s may help.)`;
+    }
+    return null;
+  };
 
   useEffect(() => {
     // Add welcome message & warm-up speech synthesis voices
@@ -197,6 +229,9 @@ const AssistantCenter = () => {
       toast({ title: 'Rate Limited', description: `Please wait ${quotaCountdown}s before trying again.` });
       return;
     }
+    if (modelUnavailableUntil && Date.now() < modelUnavailableUntil) {
+      toast({ title: 'Model Overloaded', description: `Retry in ${modelUnavailableCountdown}s.` });
+    }
 
     // Add user message
     addMessage(text, "user");
@@ -277,6 +312,22 @@ const AssistantCenter = () => {
         setQuotaCountdown(Math.ceil(retryMs / 1000));
         addMessage(`Model quota exhausted. Cooling down for ~${Math.ceil(retryMs/1000)}s. I will be ready again shortly.`, 'assistant');
         return; // Avoid generic error path below
+      }
+      if (!response.ok && response.error === 'model_unavailable') {
+        const retryMs = (response as any).retryAfterMs || 8000;
+        const until = Date.now() + retryMs;
+        setModelUnavailableUntil(until);
+        setModelUnavailableCountdown(Math.ceil(retryMs / 1000));
+        const local = localFallbackAnswer(text);
+        if (local) {
+          addMessage(local, 'assistant');
+          speakText(local);
+        } else {
+          const msg = `Model temporarily overloaded. Retry in ~${Math.ceil(retryMs/1000)}s or ask a simpler question.`;
+          addMessage(msg, 'assistant');
+          speakText(msg);
+        }
+        return;
       }
 
       if (!response.ok) {
@@ -431,6 +482,21 @@ const AssistantCenter = () => {
             {showAvatarPanel ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             <span>{showAvatarPanel ? 'Hide Panel' : 'Show Panel'}</span>
           </button>
+          {/* Overload / quota banners */}
+          {(quotaBlockedUntil || modelUnavailableUntil) && (
+            <div className="max-w-2xl mx-auto mt-2 px-4">
+              {quotaBlockedUntil && (
+                <div className="mb-2 text-xs font-semibold bg-coral text-white px-3 py-2 rounded border-2 border-navy shadow-offset-small">
+                  Rate limit cooldown: {quotaCountdown}s
+                </div>
+              )}
+              {modelUnavailableUntil && (
+                <div className="mb-2 text-xs font-semibold bg-peach text-navy px-3 py-2 rounded border-2 border-navy shadow-offset-small">
+                  Model overloaded, retry in {modelUnavailableCountdown}s (local answers may be heuristic)
+                </div>
+              )}
+            </div>
+          )}
           {/* Messages */}
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="space-y-4 max-w-2xl mx-auto">

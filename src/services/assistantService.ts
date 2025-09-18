@@ -29,6 +29,9 @@ export async function sendToAssistant(text: string, context?: any): Promise<Rout
     if (!resp.ok && resp.status === 429 && data?.error === 'quota_exhausted') {
       return { ok: false, error: 'quota_exhausted', ...(data.retryAfterMs ? { retryAfterMs: data.retryAfterMs } : {}) } as any;
     }
+    if (!resp.ok && resp.status === 503 && data?.error === 'model_unavailable') {
+      return { ok: false, error: 'model_unavailable', ...(data.retryAfterMs ? { retryAfterMs: data.retryAfterMs } : {}) } as any;
+    }
     return data;
   } catch (error: any) {
     return { ok: false, error: error.message };
