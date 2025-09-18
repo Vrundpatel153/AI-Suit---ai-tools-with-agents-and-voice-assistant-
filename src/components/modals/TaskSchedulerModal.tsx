@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Calendar, Clock, Users, ExternalLink, Download, Save, Undo } from "lucide-react";
 import BaseModal from "./BaseModal";
-import { mockLLM } from "../../utils/mockLLM";
+// Replaced mock parser with backend API
+import { parseEvent } from "../../services/assistantService";
 import { generateGoogleCalendarURL, downloadICS } from "../../utils/ics";
 import { saveToHistory } from "../../utils/localStorageHelpers";
 import { useToast } from "../../hooks/use-toast";
@@ -9,13 +10,24 @@ import { useToast } from "../../hooks/use-toast";
 interface TaskSchedulerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  prefill?: { text?: string };
+  prefill?: { text?: string; event?: any };
 }
 
 const TaskSchedulerModal = ({ isOpen, onClose, prefill }: TaskSchedulerModalProps) => {
   const [inputText, setInputText] = useState(prefill?.text || "");
   const [isParsing, setIsParsing] = useState(false);
-  const [eventData, setEventData] = useState<any>(null);
+  const [eventData, setEventData] = useState<any>(() => {
+    if (!prefill?.event) return null;
+    const e = prefill.event;
+    return {
+      title: e.title || '',
+      date: e.date || '',
+      time: e.time || '',
+      duration_minutes: e.duration_minutes || e.durationMinutes || 30,
+      attendees: e.attendees || [],
+      description: e.description || e.notes || ''
+    };
+  });
   const [clarification, setClarification] = useState<string | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const { toast } = useToast();
@@ -27,12 +39,16 @@ const TaskSchedulerModal = ({ isOpen, onClose, prefill }: TaskSchedulerModalProp
     setClarification(null);
 
     try {
-      const result = await mockLLM.parseEvent(inputText);
-      
-      if (result.type === "clarify") {
-        setClarification(result.question);
-      } else {
-        setEventData(result);
+      const result = await parseEvent(inputText);
+      if (!result.ok) throw new Error(result.error || 'parse_failed');
+      if (result.type === 'action' && result.event) {
+        setEventData(result.event);
+      } else if (result.type === 'clarify') {
+        setClarification(result.question || 'Could you clarify details?');
+      } else if (result.type === 'reply' && result.event) {
+        setEventData(result.event);
+      } else if (result.event) {
+        setEventData(result.event);
       }
     } catch (error) {
       toast({

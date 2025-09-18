@@ -1,4 +1,4 @@
-// Mock LLM Engine for AiSuite Frontend Demo
+// Mock LLM Engine placeholder (may be replaced by real AI API integration)
 // Simulates AI responses with realistic latency and behavior
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

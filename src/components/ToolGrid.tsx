@@ -27,7 +27,7 @@ const ToolGrid = ({ tools, onToolSelect }: ToolGridProps) => {
             <span>{category}</span>
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {tools
               .filter(tool => tool.category === category)
               .map((tool) => (
@@ -42,7 +42,7 @@ const ToolGrid = ({ tools, onToolSelect }: ToolGridProps) => {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-bold text-navy mb-2 group-hover:text-shadow-navy transition-all">
+                      <h3 className="text-lg font-bold text-navy mb-2 transition-colors">
                         {tool.title}
                       </h3>
                       <p className="text-navy/80 text-sm leading-relaxed mb-4">

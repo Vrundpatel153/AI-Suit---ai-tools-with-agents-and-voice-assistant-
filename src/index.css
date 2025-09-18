@@ -238,6 +238,30 @@
     border-width: 3px;
   }
 
+  /* Voice Wave Animation */
+  @keyframes voice-wave {
+    0% { transform: scaleY(0.3); }
+    25% { transform: scaleY(1); }
+    50% { transform: scaleY(0.4); }
+    75% { transform: scaleY(0.9); }
+    100% { transform: scaleY(0.3); }
+  }
+  .animate-voice-wave {
+    animation: voice-wave 1.4s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+  .voice-bar {
+    height: 100%;
+    background: linear-gradient(to top, hsl(var(--navy)) 0%, hsl(var(--peach)) 100%);
+    width: 4px;
+    border: 1px solid hsl(var(--navy));
+    border-radius: 2px;
+    opacity: 0.85;
+  }
+  .voice-bar:nth-child(odd) { filter: brightness(1.1); }
+  .voice-bar:nth-child(3n) { filter: saturate(1.4); }
+  .voice-visualizer-wrapper { width: 100%; display: flex; justify-content: center; }
+
   /* Badge Components */
   .badge-demo {
     @apply bg-coral text-white text-xs font-semibold px-2 py-1 rounded border border-navy;

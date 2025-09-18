@@ -22,7 +22,7 @@ const HeroSection = ({ onQuickRun }: HeroSectionProps) => {
         {/* Hero Title */}
         <div className="mb-8">
           <h1 className="hero-title mb-6">
-            AiSuite — your multi-agent AI studio
+            AiSuite — your multi-agent AI platform
           </h1>
           <p className="hero-subtitle max-w-3xl mx-auto">
             Harness the power of specialized AI agents for scheduling, content analysis, 

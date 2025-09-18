@@ -39,10 +39,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-beige border-r-3 border-navy transform transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-beige border-r-3 border-navy pt-[0.5px] lg:pt-0 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
+        {/* Top separator line under navbar overlap (mobile) */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-navy/20 lg:hidden" />
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b-2 border-navy lg:hidden">
@@ -109,11 +111,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           {/* Footer */}
           <div className="p-4 border-t-2 border-navy">
             <div className="text-center">
-              <div className="badge-demo mb-2">
-                Frontend Demo
-              </div>
-              <p className="text-xs text-navy/60">
-                Multi-agent AI Studio
+              <p className="text-xs text-navy/60 font-semibold tracking-wide">
+                Multi-agent AI Platform
               </p>
             </div>
           </div>

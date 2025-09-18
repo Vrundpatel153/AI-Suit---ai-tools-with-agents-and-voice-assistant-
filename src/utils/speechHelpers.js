@@ -6,12 +6,32 @@ export class SpeechManager {
     this.synthesis = window.speechSynthesis;
     this.isListening = false;
     this.isSpeaking = false;
+    this.voicesLoaded = false;
+    this.pendingQueue = [];
     
     // Initialize speech recognition if available
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       this.recognition = new SpeechRecognition();
       this.setupRecognition();
+    }
+
+    // Ensure voices are loaded; some browsers need an async event
+    if (this.synthesis) {
+      const loadVoices = () => {
+        const voices = this.synthesis.getVoices();
+        if (voices && voices.length) {
+          this.voicesLoaded = true;
+          // Flush any queued utterances
+          const queue = [...this.pendingQueue];
+            this.pendingQueue = [];
+            queue.forEach(item => this._speakInternal(item.text, item.options));
+        }
+      };
+      loadVoices();
+      this.synthesis.onvoiceschanged = loadVoices;
+      // Fallback attempt after short delay if still not loaded
+      setTimeout(() => { if (!this.voicesLoaded) loadVoices(); }, 750);
     }
   }
 
@@ -75,45 +95,50 @@ export class SpeechManager {
       console.warn('Speech synthesis not supported');
       return false;
     }
+    if (!text || !text.trim()) return false;
 
-    // Stop any current speech
-    this.stopSpeaking();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Configure utterance
-    utterance.rate = options.rate || 0.9;
-    utterance.pitch = options.pitch || 1;
-    utterance.volume = options.volume || 0.8;
-    utterance.lang = options.lang || 'en-US';
-
-    // Set voice if specified
-    if (options.voice) {
-      const voices = this.synthesis.getVoices();
-      const selectedVoice = voices.find(voice => voice.name === options.voice);
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
+    // If voices not loaded yet, queue
+    if (!this.voicesLoaded) {
+      this.pendingQueue.push({ text, options });
+      return true;
     }
+    this.stopSpeaking();
+    return this._speakInternal(text, options);
+  }
 
-    // Event handlers
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-      options.onStart && options.onStart();
-    };
-
-    utterance.onend = () => {
+  _speakInternal(text, options) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = options.rate || 0.95;
+    utterance.pitch = options.pitch || 1;
+    utterance.volume = options.volume || 0.9;
+    utterance.lang = options.lang || 'en-US';
+    // Voice preference: pick a stable default if not specified
+    const voices = this.synthesis.getVoices();
+    if (options.voice) {
+      const selected = voices.find(v => v.name === options.voice);
+      if (selected) utterance.voice = selected;
+    } else if (voices.length) {
+      // Pick first en voice for consistency
+      const preferred = voices.find(v => v.lang.startsWith('en')) || voices[0];
+      utterance.voice = preferred;
+    }
+    utterance.onstart = () => { this.isSpeaking = true; options.onStart && options.onStart(); };
+    utterance.onend = () => { this.isSpeaking = false; options.onEnd && options.onEnd(); };
+    utterance.onerror = (e) => {
       this.isSpeaking = false;
-      options.onEnd && options.onEnd();
+      // Retry once if voices may have loaded late
+      if (!this.voicesLoaded) {
+        setTimeout(() => this.speak(text, options), 300);
+      }
+      options.onError && options.onError(e);
     };
-
-    utterance.onerror = (event) => {
-      this.isSpeaking = false;
-      options.onError && options.onError(event);
-    };
-
     this.synthesis.speak(utterance);
     return true;
+  }
+
+  forceSpeak(text) {
+    // Utility to re-trigger speak ignoring queue state
+    return this.speak(text, {});
   }
 
   stopSpeaking() {

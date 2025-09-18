@@ -60,6 +60,66 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Backend (Assistant + Gemini API)
+
+This repo now includes a lightweight Express backend under `server/` that proxies and routes all Gemini model interactions and assistant intent logic.
+
+### Features
+- `/api/gemini/generate`: raw Gemini text generations
+- `/api/agent/routeIntent`: intent routing (reply, open_url, open_tool, action, clarify)
+- `/api/agent/parseEvent`: extract structured event objects (title/date/time/etc.)
+
+### Environment Variables
+Create (or update) `.env` in project root:
+
+```
+GEMINI_API_KEY=sk-...your-key...
+PORT=5000
+```
+
+Frontend Firebase / Vite variables (already present) remain unchanged.
+
+### Install & Run (dev)
+
+```sh
+npm install            # installs frontend + backend deps
+npm run dev:server     # starts Express backend on :5000
+npm run dev            # in another terminal (or use npm run dev:full to run both)
+```
+
+Or run both with one command:
+
+```sh
+npm run dev:full
+```
+
+### Frontend Usage
+Use the helper functions in `src/services/assistantService.ts`:
+
+```ts
+import { sendToAssistant, parseEvent } from '@/services/assistantService';
+
+const intent = await sendToAssistant('Open youtube');
+// => { ok: true, type: 'open_url', url: 'https://www.youtube.com' }
+
+const event = await sendToAssistant('Schedule meeting tomorrow 5pm with Alice');
+// => { ok: true, type: 'action', action: 'create_event', event: { ... } }
+```
+
+### Error Shapes
+All endpoints return `{ ok: boolean, ... }`. On failure: `{ ok:false, error:"message" }`.
+
+### Notes
+- All Gemini calls are server-side; no API key leaks to browser.
+- If the model returns unstructured text, we attempt to extract the first JSON block.
+- Safety: external URLs validated to http/https only.
+
+### Future Ideas
+- Add streaming responses (Server-Sent Events or WebSocket)
+- Add auth middleware verifying Firebase ID token
+- Add rate limiting
+
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/a7d80a2a-593a-425b-ba87-b337193d50aa) and click on Share -> Publish.

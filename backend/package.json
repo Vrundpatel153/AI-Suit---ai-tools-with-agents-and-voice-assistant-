@@ -1,0 +1,18 @@
+{
+  "name": "aisuite-backend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Firebase backend for AiSuite (emulator + functions + rules)",
+  "scripts": {
+    "dev": "firebase emulators:start --only auth,firestore,functions",
+    "start": "npm run dev",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy": "firebase deploy --only firestore,functions",
+    "seed": "node ./scripts/seedData.js",
+    "lint": "echo 'no lint configured'",
+    "postinstall": "npm --prefix functions install"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.11.2"
+  }
+}

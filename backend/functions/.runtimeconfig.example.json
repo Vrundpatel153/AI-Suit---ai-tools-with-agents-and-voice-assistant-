@@ -1,0 +1,12 @@
+{
+  "app": {
+    "allow_external_api": "false"
+  },
+  "gemini": {
+    "key": "YOUR_GEMINI_API_KEY"
+  },
+  "google": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID",
+    "client_secret": "YOUR_GOOGLE_CLIENT_SECRET"
+  }
+}

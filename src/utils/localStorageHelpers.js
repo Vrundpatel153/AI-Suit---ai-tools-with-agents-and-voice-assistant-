@@ -1,4 +1,4 @@
-// Local Storage helpers for AiSuite frontend demo
+// Local Storage helpers for AiSuite
 
 const STORAGE_KEYS = {
   HISTORY: 'aisuite_history',
@@ -169,6 +169,14 @@ export const importData = async (file) => {
 };
 
 // Authentication management
+const dispatchAuthChanged = () => {
+  try {
+    window.dispatchEvent(new Event('aisuite-auth-changed'));
+  } catch (e) {
+    // no-op for non-browser environments
+  }
+};
+
 export const authenticateUser = (email, password) => {
   try {
     // Demo user
@@ -181,6 +189,7 @@ export const authenticateUser = (email, password) => {
         createdAt: new Date().toISOString()
       };
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      dispatchAuthChanged();
       return true;
     }
     
@@ -191,6 +200,7 @@ export const authenticateUser = (email, password) => {
     if (user) {
       const { password: _, ...userWithoutPassword } = user;
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userWithoutPassword));
+      dispatchAuthChanged();
       return true;
     }
     
@@ -201,52 +211,84 @@ export const authenticateUser = (email, password) => {
   }
 };
 
-export const registerUser = (name, email, password) => {
+// OAuth-style login (mocked)
+// Real Google OAuth login using Google Identity Services
+// 1. Go to https://console.cloud.google.com/apis/credentials and create a Web OAuth Client ID
+// 2. Put your client ID in VITE_GOOGLE_CLIENT_ID env var
+// 3. This will open a Google login popup and store the user info on success
+// Read Google Client ID directly (Vite replaces import.meta.env at build time)
+// Simplified: direct Firebase popup flow only (normal Google account chooser)
+export const loginWithGoogle = async () => {
   try {
-    const users = getUsers();
-    
-    // Check if user already exists
-    if (users.find(u => u.email === email)) {
+    const { signInWithGooglePopup } = await import('../lib/firebase');
+    const cred = await signInWithGooglePopup(); // user gesture context
+    const user = cred?.user;
+    if (!user?.email) {
       return false;
     }
-    
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      password,
-      avatar: null,
-      createdAt: new Date().toISOString()
-    };
-    
-    // Save to users list
-    users.push(newUser);
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    
-    // Auto login
-    const { password: _, ...userWithoutPassword } = newUser;
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userWithoutPassword));
-    
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify({
+      id: user.uid,
+      name: user.displayName,
+      email: user.email,
+      avatar: user.photoURL,
+      provider: 'firebase-google',
+      createdAt: new Date().toISOString(),
+    }));
+    dispatchAuthChanged();
     return true;
-  } catch (error) {
-    console.error('Registration failed:', error);
+  } catch (err) {
+    // Handle common popup issues
+    if (err?.code === 'auth/popup-blocked') {
+      alert('Popup was blocked. Please allow popups for this site and try again.');
+    } else if (err?.code === 'auth/cancelled-popup-request') {
+      // Ignore; user perhaps double-clicked
+    } else if (err?.code === 'auth/popup-closed-by-user') {
+      // User closed; no alert necessary
+    } else {
+      console.error('[Auth] Google login error:', err);
+      alert('Google login failed. Check console for details.');
+    }
     return false;
   }
 };
 
+// True demo mode: no Google / offline user
+export const loginAsDemo = () => {
+  const existing = localStorage.getItem(STORAGE_KEYS.USER);
+  if (existing) return true;
+  const demoUser = {
+    id: 'demo-user',
+    name: 'Demo User',
+    email: 'demo@aisuite.local',
+    avatar: null,
+    provider: 'demo',
+    createdAt: new Date().toISOString(),
+  };
+  localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(demoUser));
+  dispatchAuthChanged();
+  return true;
+};
 export const getCurrentUser = () => {
   try {
-    const user = localStorage.getItem(STORAGE_KEYS.USER);
-    return user ? JSON.parse(user) : null;
-  } catch (error) {
-    console.error('Failed to get current user:', error);
+    const raw = localStorage.getItem(STORAGE_KEYS.USER);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
     return null;
   }
-};
+}
 
 export const logoutUser = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.USER);
+    // Attempt to sign out from Firebase Auth if available
+    try {
+      import('../lib/firebase').then(async (m) => {
+        if (m && typeof m.signOutFirebase === 'function') {
+          await m.signOutFirebase();
+        }
+      }).catch(() => {});
+    } catch {}
+    dispatchAuthChanged();
     return true;
   } catch (error) {
     console.error('Logout failed:', error);

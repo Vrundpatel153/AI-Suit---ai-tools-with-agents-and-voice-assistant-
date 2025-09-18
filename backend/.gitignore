@@ -1,0 +1,20 @@
+# Firebase/Functions build artifacts
+functions/lib/
+functions/node_modules/
+node_modules/
+
+# Local emulator data
+.firebaserc.local
+.firebase/
+
+# Runtime configs (set via firebase functions:config:set)
+functions/.runtimeconfig.json
+
+# Secrets / envs
+.env
+.env.*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/

@@ -46,20 +46,13 @@ const About = () => {
           </div>
           
           <p className="hero-subtitle max-w-3xl mx-auto mb-8">
-            Your comprehensive multi-agent AI studio for productivity, creativity, and intelligent automation.
-            Built as a frontend demonstration of modern AI interface design.
+            Your comprehensive multi-agent AI platform for productivity, creativity, and intelligent automation.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="badge-demo">
-              Frontend-Only Demo
-            </div>
-            <div className="badge-demo">
-              React + TypeScript
-            </div>
-            <div className="badge-demo">
-              Modern AI Interface
-            </div>
+          <div className="flex flex-wrap justify-center gap-3 text-xs text-navy/60">
+            <span className="inline-flex items-center px-3 py-1 rounded-full border border-navy/20 bg-beige/40 font-medium">React + TypeScript</span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full border border-navy/20 bg-beige/40 font-medium">Multi-Agent UI</span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full border border-navy/20 bg-beige/40 font-medium">Voice Enabled</span>
           </div>
         </div>
 
@@ -92,19 +85,15 @@ const About = () => {
             
             <div className="space-y-4 text-navy/80">
               <p>
-                AiSuite is a frontend prototype demonstrating a modern approach to AI tool interfaces. 
-                It showcases how multiple specialized AI agents can be integrated into a cohesive, 
-                user-friendly platform.
+                AiSuite integrates multiple specialized AI agents into a cohesive, user-friendly platform, focusing on clarity and speed.
               </p>
               
               <p>
-                This demo uses mock AI responses to simulate real AI behavior, allowing you to 
-                explore the interface and workflows without requiring actual AI API keys or backend services.
+                The architecture emphasizes modularity, voice interaction, and responsive design for diverse devices.
               </p>
               
               <p>
-                The project emphasizes clean design, accessibility, and responsive layouts while 
-                maintaining the retro poster aesthetic that makes it unique and memorable.
+                The project emphasizes clean design, accessibility, and responsive layouts while maintaining a distinct retro-inspired aesthetic.
               </p>
             </div>
           </div>
@@ -134,48 +123,7 @@ const About = () => {
           </div>
         </div>
 
-        {/* Implementation Guide */}
-        <div className="panel p-8 mb-16">
-          <h2 className="section-title mb-6">Implementation Guide</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-bold text-navy mb-4">To Enable Real AI</h3>
-              <div className="space-y-3 text-navy/80">
-                <div className="flex items-start space-x-3">
-                  <span className="bg-coral text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                  <p>Replace <code className="bg-beige px-2 py-1 rounded text-sm">mockLLM.js</code> with real AI API calls (OpenAI, Anthropic, etc.)</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="bg-coral text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                  <p>Add environment variables for API keys</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="bg-coral text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                  <p>Implement proper error handling and rate limiting</p>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-bold text-navy mb-4">To Add Backend</h3>
-              <div className="space-y-3 text-navy/80">
-                <div className="flex items-start space-x-3">
-                  <span className="bg-peach text-navy text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                  <p>Set up authentication (OAuth, JWT, etc.)</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="bg-peach text-navy text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                  <p>Add database for persistent storage</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="bg-peach text-navy text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                  <p>Integrate real calendar APIs (Google, Outlook)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Implementation guide removed */}
 
         {/* Footer */}
         <div className="text-center panel p-8">
@@ -195,10 +143,7 @@ const About = () => {
               <ExternalLink className="w-4 h-4" />
             </button>
             
-            <button className="btn-primary flex items-center space-x-2">
-              <ExternalLink className="w-4 h-4" />
-              <span>Live Demo</span>
-            </button>
+            {/* Live Demo button removed */}
           </div>
         </div>
       </div>

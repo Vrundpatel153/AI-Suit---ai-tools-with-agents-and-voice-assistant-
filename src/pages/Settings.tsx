@@ -236,28 +236,7 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Developer Note */}
-        <div className="panel p-6 mb-6">
-          <h2 className="section-title text-xl mb-6">About Frontend Demo</h2>
-          
-          <div className="space-y-4 text-navy/80">
-            <p>
-              This is a frontend-only demonstration of AiSuite. To enable full functionality:
-            </p>
-            
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li><strong>Replace mockLLM:</strong> Integrate real AI/LLM APIs for actual AI processing</li>
-              <li><strong>Add Backend:</strong> Enable OAuth authentication and persistent storage</li>
-              <li><strong>Calendar Integration:</strong> Connect to real calendar APIs for two-way sync</li>
-              <li><strong>File Storage:</strong> Add server-side file processing and storage</li>
-            </ul>
-            
-            <p className="mt-4 text-sm bg-beige/50 p-3 rounded-lg border border-navy/20">
-              💡 <strong>Note:</strong> All data in this demo is stored locally in your browser. 
-              Clearing browser data will remove all history and settings.
-            </p>
-          </div>
-        </div>
+        {/* Frontend demo developer note removed */}
 
         {/* Save Button */}
         {hasChanges && (

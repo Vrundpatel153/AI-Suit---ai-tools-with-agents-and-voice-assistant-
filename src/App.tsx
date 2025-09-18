@@ -29,7 +29,13 @@ const App = () => {
     seedSampleData();
   }, []);
 
-  const isUserAuthenticated = isAuthenticated();
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(isAuthenticated());
+
+  useEffect(() => {
+    const handler = () => setIsUserAuthenticated(isAuthenticated());
+    window.addEventListener('aisuite-auth-changed', handler);
+    return () => window.removeEventListener('aisuite-auth-changed', handler);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
